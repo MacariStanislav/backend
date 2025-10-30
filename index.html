@@ -8,6 +8,7 @@
     h2 { margin-top: 40px; }
     .car { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
     .car img { max-width: 200px; display: block; margin-bottom: 5px; }
+    .car video { display: block; margin-bottom: 5px; width: 300px; }
     form input, form textarea { display: block; margin-bottom: 10px; width: 300px; }
   </style>
 </head>
@@ -15,7 +16,7 @@
 
   <h1>Car Viewer</h1>
   <div id="car-list">
-    <!-- Здесь будут машины -->
+    <!-- Машины будут отображаться здесь -->
   </div>
 
   <h2>Admin: Add Car</h2>
@@ -30,46 +31,57 @@
   </form>
 
   <script>
+    const API_URL = 'https://backend-cvda.onrender.com'; // Твой онлайн API
     const carList = document.getElementById('car-list');
     const form = document.getElementById('admin-form');
 
-    // Функция загрузки всех машин
+    // Загрузка всех машин
     async function loadCars() {
-      const res = await fetch('http://localhost:5000/api/cars');
-      const cars = await res.json();
-      carList.innerHTML = '';
-      cars.forEach(car => {
-        const div = document.createElement('div');
-        div.className = 'car';
-        div.innerHTML = `
-          <h3>${car.title} - $${car.price}</h3>
-          <p>${car.description}</p>
-          ${car.images ? car.images.map(img => `<img src="http://localhost:5000/uploads/${img}">`).join('') : ''}
-          ${car.videos ? car.videos.map(v => `<video src="http://localhost:5000/uploads/${v}" controls width="300"></video>`).join('') : ''}
-        `;
-        carList.appendChild(div);
-      });
+      try {
+        const res = await fetch(`${API_URL}/api/cars`);
+        const cars = await res.json();
+        carList.innerHTML = '';
+        cars.forEach(car => {
+          const div = document.createElement('div');
+          div.className = 'car';
+          div.innerHTML = `
+            <h3>${car.title} - $${car.price}</h3>
+            <p>${car.description}</p>
+            ${car.images ? car.images.map(img => `<img src="${API_URL}/uploads/${img}">`).join('') : ''}
+            ${car.videos ? car.videos.map(v => `<video src="${API_URL}/uploads/${v}" controls></video>`).join('') : ''}
+          `;
+          carList.appendChild(div);
+        });
+      } catch (err) {
+        carList.innerHTML = '<p>Ошибка при загрузке машин</p>';
+        console.error(err);
+      }
     }
 
     loadCars();
 
-    // Форма добавления машины (админ)
+    // Добавление машины админом
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(form);
       const password = formData.get('adminPassword');
-      formData.delete('adminPassword'); // удаляем из body, чтобы не путать с Multer
+      formData.delete('adminPassword');
 
-      const res = await fetch('http://localhost:5000/api/admin/add', {
-        method: 'POST',
-        headers: { 'password': password },
-        body: formData
-      });
+      try {
+        const res = await fetch(`${API_URL}/api/admin/add`, {
+          method: 'POST',
+          headers: { 'password': password },
+          body: formData
+        });
 
-      const data = await res.json();
-      alert(data.message);
-      form.reset();
-      loadCars(); // обновляем список
+        const data = await res.json();
+        alert(data.message || 'Машина добавлена!');
+        form.reset();
+        loadCars(); // обновляем список
+      } catch (err) {
+        alert('Ошибка при добавлении машины');
+        console.error(err);
+      }
     });
   </script>
 </body>
