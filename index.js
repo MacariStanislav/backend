@@ -8,6 +8,8 @@ import carsRoutes from "./routes/cars.js";
 dotenv.config();
 
 const app = express();
+
+// CORS для всех фронтендов
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
