@@ -8,19 +8,13 @@ import carsRoutes from "./routes/cars.js";
 dotenv.config();
 
 const app = express();
-
-// Настройка CORS для всех
 app.use(cors({ origin: "*" }));
-
-// Body парсер
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Статика для загрузок
 app.use("/uploads", express.static("uploads"));
 
-// Функция для подключения к MongoDB и запуска сервера
-async function startServer() {
+// Подключение к MongoDB через async IIFE
+(async () => {
   try {
     const client = new MongoClient(process.env.MONGO_URI);
     await client.connect();
@@ -33,11 +27,8 @@ async function startServer() {
 
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  } catch (error) {
-    console.error("MongoDB connection error:", error);
-    process.exit(1); // Завершаем процесс, если подключение не удалось
+  } catch (err) {
+    console.error("Failed to connect to MongoDB:", err);
+    process.exit(1); // аварийный выход
   }
-}
-
-// Запуск
-startServer();
+})();
