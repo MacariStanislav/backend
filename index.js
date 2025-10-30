@@ -1,35 +1,27 @@
 import express from "express";
 import dotenv from "dotenv";
-import cors from "cors"; 
-import connectDB from "./config/db.js";
+import cors from "cors";
+import { MongoClient } from "mongodb";
 import adminRoutes from "./routes/admin.js";
 import carsRoutes from "./routes/cars.js";
 
 dotenv.config();
 
 const app = express();
-
-
-app.use(cors({
-  origin: "*" 
-}));
-
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static("uploads"));
 
+// Подключение к MongoDB
+const client = new MongoClient(process.env.MONGO_URI);
+await client.connect();
+console.log("Connected to MongoDB!");
+app.locals.db = client.db("carDB");
 
-app.use("/uploads", express.static("uploads")); 
+// Роуты
+app.use("/api/admin", adminRoutes);
+app.use("/api/cars", carsRoutes);
 
-
-connectDB().then(db => {
-  app.locals.db = db;
-
-
-  app.use("/api/admin", adminRoutes);
-  app.use("/api/cars", carsRoutes);
-
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-});
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
