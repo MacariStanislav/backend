@@ -12,8 +12,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Uploads (файлы фото/видео)
-uploads/
 
 # OS files
 .DS_Store
